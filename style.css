@@ -1,0 +1,241 @@
+/* RailOptima Dashboard Styles */
+
+/* ----- Variables ----- */
+:root {
+  --nav:#0f3a63;
+  --nav-dark:#0b344f;
+  --accent:#2563eb;
+  --accent-2:#06b6d4;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --muted:#6b7280;
+  --danger:#ef4444;
+  --shadow: 0 8px 24px rgba(16,24,40,0.08);
+
+  font-family: 'Inter', sans-serif;
+  color-scheme: light;
+}
+
+/* ----- Base ----- */
+* { box-sizing: border-box; margin:0; padding:0; }
+html, body, #root { height:100%; }
+body {
+  background: linear-gradient(180deg,#f7f9fc 0%, #eef6ff 100%);
+  color:#0f1724;
+  font-size:14px;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ----- Layout ----- */
+.app {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  /* 3 rows: 1) topbar (72px) 2) heading (auto height) 3) main content (remaining) */
+  grid-template-rows: 72px auto 1fr;
+  gap: 18px;
+  min-height: 100vh;
+  padding: 18px;
+}
+.sidebar {
+  grid-row: 1 / span 3;
+  align-self: stretch;
+  min-height: 100vh;
+
+  /* background only white now */
+  background: #fff;
+  color: #fefefe; /* so text is visible if outside nav */
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.sidebar-inner {
+  background: linear-gradient(180deg, var(--nav), var(--nav-dark));
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.brand {
+  display:flex; gap:12px; align-items:center;
+}
+.logo {
+  width:46px; height:46px;
+  border-radius:10px;
+  background:rgba(255,255,255,0.15);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; color:#fff; font-size:18px;
+}
+.brand h1 { font-size:18px; margin:0; }
+.brand p { font-size:12px; color:rgba(255,255,255,0.85); }
+.nav { display:flex; flex-direction:column; gap:6px; }
+.nav a {
+  padding:10px;
+  border-radius:8px;
+  color:rgba(255,255,255,0.9);
+  font-weight:600;
+  text-decoration:none;
+}
+.nav a:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+/* highlight the active sidebar link */
+.nav a.active {
+  background: rgba(255,255,255,0.16);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ----- Topbar Basic ----- */
+.topbar {
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;          /* explicit: topbar is row 1 */
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+
+
+/* Date & Time */
+.topbar-left {
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* Right side icons */
+.topbar-right {
+  display: flex;
+  gap: 16px;
+  font-size: 18px;
+  cursor: pointer;
+}
+.topbar-right .icon:hover {
+  opacity: 0.7;
+}
+
+
+
+/* ----- Content Grid ----- */
+.content {
+  grid-column: 2 / 3;
+  grid-row: 3 / 4;          /* explicit: main content is row 3 */
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 18px;
+  overflow: auto;
+  padding: 6px;
+}
+
+/* ----- Cards ----- */
+.card {
+  background:var(--card);
+  border-radius:12px;
+  box-shadow: var(--shadow);
+  border:1px solid rgba(15,23,42,0.05);
+  padding:14px;
+}
+.card h3 { font-size:16px; margin-bottom:6px; }
+.muted { color:var(--muted); font-size:13px; }
+
+/* ----- Map & Legend ----- */
+.track-svg {
+  background:#f9fbfe;
+  border:1px solid #e4ecf9;
+  border-radius:10px;
+  padding:12px;
+}
+.legend { display:flex; gap:12px; margin-top:8px; }
+.legend .item { display:flex; gap:6px; align-items:center; }
+
+/* ----- KPIs ----- */
+.kpi-row { display:flex; gap:12px; margin-top:8px; }
+.kpi {
+  flex:1;
+  background:#fff;
+  border:1px solid #eef2ff;
+  border-radius:10px;
+  text-align:center;
+  padding:10px;
+}
+.kpi .label { font-size:12px; color:var(--muted); }
+.kpi .num { font-weight:700; font-size:18px; margin-top:6px; }
+
+/* ----- Table ----- */
+.table { margin-top:12px; }
+table { width:100%; border-collapse:collapse; }
+th, td { padding:8px; text-align:left; border-bottom:1px solid #f1f5f9; }
+th { font-weight:700; color:#374151; font-size:13px; }
+
+/* ----- Recommendations ----- */
+.sidebar-right { display:flex; flex-direction:column; gap:12px; }
+.rec-card .rec-item { padding:10px; border-bottom:1px dashed #e5ecf7; }
+.rec-item:last-child { border:none; }
+.rec-title { display:flex; justify-content:space-between; margin-bottom:8px; }
+.rec-actions { display:flex; gap:8px; margin-top:10px; }
+
+/* ----- Buttons ----- */
+.btn { padding:8px 12px; border-radius:8px; border:0; cursor:pointer; font-weight:600; font-size:13px; }
+.btn-primary { background:var(--accent); color:white; }
+.btn-ghost { background:#eef6ff; color:var(--accent); }
+.btn-wide { background:var(--danger); color:white; width:100%; margin-top:6px; }
+
+/* ----- Gantt ----- */
+.gantt-row { display:flex; align-items:center; gap:10px; margin:8px 0; }
+.gantt-label { width:90px; font-size:13px; color:#334155; }
+.gantt-track { flex:1; height:14px; background:#f1f5f9; border-radius:8px; position:relative; }
+.gantt-bar { position:absolute; top:0; left:0; height:100%; border-radius:8px; background:linear-gradient(90deg,var(--accent),var(--accent-2)); }
+
+
+/* ----- Heading Bar ----- */
+.heading-bar {
+  grid-column: 2 / 3;
+  grid-row: 2 / 3;          /* explicit: heading is row 2 */
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+  font-size: 26px;
+  font-weight: 700;
+  text-align: left;
+  color: #0f172a;
+  margin-bottom: 12px;
+}
+
+
+/* ----- Responsive ----- */
+@media (max-width:1024px){
+  .app { grid-template-columns: 1fr; grid-template-rows: 64px auto auto; padding:12px; }
+  .sidebar { grid-row:auto; flex-direction:row; overflow:auto; padding:12px; }
+  .content { grid-template-columns:1fr; }
+  .topbar { display:none; }
+}
+
+
+/* Calendar popup */
+.calendar-popup {
+  position: absolute;
+  top: 72px;   /* below topbar */
+  right: 20px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+.calendar-popup input[type="date"] {
+  font-size: 14px;
+  padding: 6px;
+}

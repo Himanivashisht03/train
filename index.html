@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>RailOptima — Real-time Train Traffic Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Link to CSS -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- React & ReactDOM (development UMD builds) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <!-- Babel standalone (so we can run JSX directly in browser) -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <!-- React Root -->
+  <div id="root"></div>
+
+  <!-- Load our app.js as JSX (must use type="text/babel") -->
+  <script type="text/babel" src="app.js"></script>
+</body>
+</html>
