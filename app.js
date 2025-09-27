@@ -1,43 +1,6 @@
 // app.js - RailOptima Dashboard
 const { useState, useEffect, useRef } = React;
 
-/* ----- Mock Train Data ----- */
-
-const initialTrains = [
-  { id: '12456', type: 'Express', pos: 12, speed: 1.1, origin: 'Delhi', dest: 'Bangalore', priority: 3, delay: 0 },
-  { id: '22559', type: 'Freight', pos: 34, speed: 0.6, origin: 'Chennai', dest: 'Pune', priority: 1, delay: 2 },
-  { id: '33679', type: 'Passenger', pos: 57, speed: 0.9, origin: 'Kolkata', dest: 'Mumbai', priority: 2, delay: 6 },
-  { id: '44780', type: 'Local', pos: 81, speed: 1.3, origin: 'Hyderabad', dest: 'Bhopal', priority: 2, delay: 0 },
-];
-
-/*
- // Generate 50 mock trains
-function generateTrains(n) {
-  const types = ["Express", "Passenger", "Freight", "Local"];
-  const origins = ["Delhi", "Mumbai", "Chennai", "Kolkata", "Hyderabad", "Pune", "Bangalore", "Bhopal", "Lucknow"];
-  const destinations = ["Delhi", "Mumbai", "Chennai", "Kolkata", "Hyderabad", "Pune", "Bangalore", "Bhopal", "Lucknow"];
-
-  const trains = [];
-  for (let i = 0; i < n; i++) {
-    const type = types[Math.floor(Math.random() * types.length)];
-    trains.push({
-      id: (10000 + i).toString(),   // unique train ID
-      type,
-      pos: Math.floor(Math.random() * 100),   // 0–100 track %
-      speed: +(0.5 + Math.random() * 1.5).toFixed(2), // 0.5–2.0 speed
-      origin: origins[Math.floor(Math.random() * origins.length)],
-      dest: destinations[Math.floor(Math.random() * destinations.length)],
-      priority: type === "Express" ? 3 : type === "Passenger" ? 2 : 1,
-      delay: Math.floor(Math.random() * 20) // 0–20 min delay
-    });
-  }
-  return trains;
-}
-
-const initialTrains = generateTrains(50);
-
-*/
-
 /* ----- Helper Functions ----- */
 function generateRecommendations(trains) {
   const recs = [];
@@ -66,10 +29,8 @@ function generateRecommendations(trains) {
   return recs.slice(0, 3); // limit for demo
 }
 
-
-
 function computeKPIs(trains) {
-
+  if (!trains || trains.length === 0) return { throughput: 0, avgDelay: 0, inSection: 0 };
   const avgDelay = Math.round(trains.reduce((s,t)=>s+(t.delay||0),0)/trains.length);
   const avgSpeed = trains.reduce((s,t)=>s+t.speed,0)/trains.length;
   return {
@@ -78,32 +39,6 @@ function computeKPIs(trains) {
     inSection: trains.length
   };
 }
-
-/*
-function computeKPI(trains, recommendations) {
-    let totalTrains = trains.length;
-    let totalConflicts = recommendations.length;
-
-    // 1. Throughput KPI (trains that reach without delay)
-    let trainsWithoutDelay = trains.filter(t => t.delay === 0).length;
-    let throughput = (trainsWithoutDelay / totalTrains) * 100; // in %
-
-    // 2. Average Delay
-    let totalDelay = trains.reduce((sum, t) => sum + t.delay, 0);
-    let avgDelay = totalDelay / totalTrains;
-
-    // 3. Conflict Resolution Rate
-    // assume each recommendation = 1 conflict resolved
-    let conflictResolutionRate = totalConflicts > 0 ? (totalConflicts / totalTrains) * 100 : 0;
-
-    return {
-        throughput: throughput.toFixed(2) + "%",
-        averageDelay: avgDelay.toFixed(2) + " units",
-        conflictsResolved: conflictResolutionRate.toFixed(2) + "%"
-    };
-}
-
-*/
 
 /* ----- Components ----- */
 function Sidebar({ activePage, setActivePage }) {
@@ -145,22 +80,20 @@ function Sidebar({ activePage, setActivePage }) {
   );
 }
 
-
-
-function Topbar() {
+function Topbar({ setActivePage }) {
   const now = new Date().toLocaleString();
 
   return (
     <header className="topbar">
-      {/* Left: Date & Time */}
       <div className="topbar-left">{now}</div>
-
-      {/* Right: Icons */}
       <div className="topbar-right">
-        <span className="icon">🔔</span>
+        <span className="icon" title="Notifications">🔔</span>
 
-        {/* Calendar symbol with hidden input */}
-        <label className="icon" style={{ cursor: "pointer", position: "relative" }}>
+        <label
+          className="icon"
+          style={{ cursor: "pointer", position: "relative" }}
+          title="Select date"
+        >
           📅
           <input
             type="date"
@@ -177,71 +110,145 @@ function Topbar() {
           />
         </label>
 
-        <span className="icon">👤</span>
+        {/* Profile icon - clicking opens Profile page */}
+        <span
+          className="icon"
+          title="Profile"
+          style={{ cursor: "pointer" }}
+          onClick={() => setActivePage("Profile")}
+        >
+          👤
+        </span>
       </div>
     </header>
   );
 }
 
 
-
-
-
-
-
 function TrainMap({ trains, onSelect }) {
   const width = 800, height = 220;
-
-  // Color coding based on delay
   const getTrainColor = (delay) => {
-    if (delay === 0) return "#22c55e";      // green = on time
-    if (delay <= 5) return "#eab308";       // yellow = minor delay
-    return "#ef4444";                       // red = major delay
+    if (delay === 0) return "#22c55e";
+    if (delay <= 5) return "#eab308";
+    return "#ef4444";
   };
 
   return (
     <div className="track-svg card">
       <h3>Live Train Map</h3>
       <svg viewBox={`0 0 ${width} ${height}`} width="100%">
-        {/* Main horizontal tracks */}
         <line x1="80" y1="80" x2="720" y2="80" stroke="#2563eb" strokeWidth="4" />
         <line x1="80" y1="140" x2="720" y2="140" stroke="#2563eb" strokeWidth="4" />
-
-        {/* Branching track example */}
         <line x1="200" y1="80" x2="300" y2="140" stroke="#2563eb" strokeWidth="4" />
         <line x1="500" y1="140" x2="600" y2="80" stroke="#2563eb" strokeWidth="4" />
+        <text x="60" y="85" fontSize="12" fill="#333">Delhi</text>
+        <text x="700" y="145" fontSize="12" fill="#333">Mumbai</text>
 
-        {/* Stations */}
-        <text x="60" y="85" fontSize="12" fill="#333">SBC</text>
-        <text x="700" y="145" fontSize="12" fill="#333">BLR</text>
-
-        {/* Place trains on tracks */}
         {trains.map((t, idx) => {
-          // pick a track (alternate between upper/lower for demo)
           const y = idx % 2 === 0 ? 80 : 140;
-          const x = 100 + (t.pos * 6); // map pos% to SVG length
+          const x = 100 + (t.pos * 6);
           const color = getTrainColor(t.delay);
 
           return (
             <g key={t.id} transform={`translate(${x},${y})`} onClick={() => onSelect(t)} style={{ cursor: "pointer" }}>
-
-
               <circle r="12" fill={color} stroke="#fff" strokeWidth="2" />
-
               <text x="0" y="4" fill="#fff" fontSize="9" textAnchor="middle">{t.id}</text>
-
             </g>
           );
         })}
       </svg>
-
-      {/* Legend */}    
       <div className="legend">
         <div className="item"><span style={{width:12,height:12,background:"#22c55e",borderRadius:"50%",display:"inline-block"}}></span> On Time</div>
         <div className="item"><span style={{width:12,height:12,background:"#eab308",borderRadius:"50%",display:"inline-block"}}></span> Minor Delay</div>
         <div className="item"><span style={{width:12,height:12,background:"#ef4444",borderRadius:"50%",display:"inline-block"}}></span> Major Delay</div>
       </div>
     </div>
+  );
+}
+
+
+function AdminPanel({ showToast }) {
+  const [form, setForm] = useState({
+    fullName: "",
+    email: "",
+    role: "Controller",
+    password: "",
+    confirmPassword: ""
+  });
+
+  const handleChange = (k) => (e) => setForm(prev => ({ ...prev, [k]: e.target.value }));
+
+  const validate = () => {
+    if (!form.fullName.trim()) return "Enter full name";
+    if (!form.email.trim() || !/^\S+@\S+\.\S+$/.test(form.email)) return "Enter valid email";
+    if (!form.password || form.password.length < 6) return "Password must be at least 6 chars";
+    if (form.password !== form.confirmPassword) return "Passwords do not match";
+    return null;
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const err = validate();
+    if (err) return alert(err);
+    showToast(`User ${form.fullName} created successfully!`, "success");
+    setForm({ fullName: "", email: "", role: "Controller", password: "", confirmPassword: "" });
+  };
+
+  // Dummy button handlers for existing admin buttons
+  const handleAddUser = () => showToast("Add User clicked", "info");
+  const handleRemoveUser = () => showToast("Remove User clicked", "info");
+  const handleBackup = () => showToast("Backup System clicked", "info");
+  const handleRestart = () => showToast("Restart System clicked", "info");
+
+  return (
+    <main className="content">
+      <section style={{ maxWidth: 600, margin: "0 auto" }}>
+        {/* Existing buttons */}
+        <div className="admin-buttons" style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+          <button onClick={handleAddUser} className="btn btn-secondary">Add User</button>
+          <button onClick={handleRemoveUser} className="btn btn-secondary">Remove User</button>
+          <button onClick={handleBackup} className="btn btn-secondary">Backup System</button>
+          <button onClick={handleRestart} className="btn btn-secondary">Restart System</button>
+        </div>
+
+        {/* Signup form below */}
+        <div className="admin-card">
+          <h2>Sign Up New User</h2>
+          <form onSubmit={handleSubmit} style={{ display: "grid", gap: 12 }}>
+            <div>
+              <label className="muted">Full Name</label>
+              <input value={form.fullName} onChange={handleChange("fullName")} style={{ width: "100%", padding: 8, borderRadius: 8 }} />
+            </div>
+
+            <div>
+              <label className="muted">Email</label>
+              <input value={form.email} onChange={handleChange("email")} style={{ width: "100%", padding: 8, borderRadius: 8 }} />
+            </div>
+
+            <div>
+              <label className="muted">Role</label>
+              <select value={form.role} onChange={handleChange("role")} style={{ width: "100%", padding: 8, borderRadius: 8 }}>
+                <option>Controller</option>
+                <option>Supervisor</option>
+                <option>Admin</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="muted">Password</label>
+              <input type="password" value={form.password} onChange={handleChange("password")} style={{ width: "100%", padding: 8, borderRadius: 8 }} />
+            </div>
+
+            <div>
+              <label className="muted">Confirm Password</label>
+              <input type="password" value={form.confirmPassword} onChange={handleChange("confirmPassword")} style={{ width: "100%", padding: 8, borderRadius: 8 }} />
+            </div>
+
+            <button type="submit" className="btn btn-primary">Create User</button>
+          </form>
+        </div>
+      </section>
+    </main>
   );
 }
 
@@ -283,12 +290,10 @@ function Recommendations({recs, onApply, onModify, onOverride}) {
     <div className="card rec-card">
       <div className="rec-title"><div>Suggestions</div></div>
       {recs.length===0 && <div className="muted">No conflicts detected</div>}
-
       {recs.map(r=>
         <div key={r.id} className="rec-item">
           <div><b>{r.reason}</b></div>
           <div className="muted">{r.tradeoff}</div>
-
           <div className="rec-actions">
             <button className="btn btn-primary" onClick={()=>onApply(r)}>Apply</button>
             <button className="btn btn-ghost" onClick={()=>onModify(r)}>Modify</button>
@@ -300,6 +305,7 @@ function Recommendations({recs, onApply, onModify, onOverride}) {
   );
 }
 
+
 function Gantt({trains}) {
   return (
     <div className="card">
@@ -307,8 +313,7 @@ function Gantt({trains}) {
       {trains.map(t=>{
         const left = Math.max(0, Math.min(100, t.pos-10));
         const width = Math.max(6, t.speed*20);
-
-        const color = t.type==="Freight"?"#f97316":(t.type==="Express"?"#2563eb":"#10b981");  //oranege // blue //greeen
+        const color = t.type==="Freight"?"#f97316":(t.type==="Express"?"#2563eb":"#10b981");
         return (
           <div key={t.id} className="gantt-row">
             <div className="gantt-label">{t.id}</div>
@@ -425,9 +430,180 @@ function AboutUsPage() {
         <div className="card">
           <h3>Contact Us</h3>
           <div className="muted">
-            Email: support@railoptima.com <br />
+            Email:  <br />
             Phone: +91-12345-67890
           </div>
+        </div>
+      </aside>
+    </main>
+  );
+}
+
+  
+function ProfilePage({ onBack }) {
+  const [form, setForm] = React.useState({
+    fullName: "",
+    gender: "Male",
+    dob: "",
+    mobile: "",
+    email: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+    idType: "Aadhaar",
+    idNumber: "",
+    nomineeName: "",
+    nomineeRelation: "",
+    password: "",
+    confirmPassword: ""
+  });
+
+  const handleChange = (k) => (e) => setForm(prev => ({ ...prev, [k]: e.target.value }));
+
+  const validate = () => {
+    if (!form.fullName.trim()) return "Please enter full name.";
+    if (!form.dob) return "Please enter date of birth.";
+    if (!/^\d{10}$/.test(form.mobile)) return "Enter a 10-digit mobile number.";
+    if (form.email && !/^\S+@\S+\.\S+$/.test(form.email)) return "Enter a valid email.";
+    if (!form.address.trim()) return "Please enter address.";
+    if (!form.city.trim()) return "Please enter city.";
+    if (!form.state.trim()) return "Please enter state.";
+    if (!/^\d{6}$/.test(form.pincode)) return "Enter a 6-digit pincode.";
+    if (!form.idNumber.trim()) return `Please enter ${form.idType} number.`;
+    if (form.password || form.confirmPassword) {
+      if (form.password.length < 6) return "Password must be at least 6 characters.";
+      if (form.password !== form.confirmPassword) return "Passwords do not match.";
+    }
+    return null;
+  };
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    const err = validate();
+    if (err) return alert(err);
+    // For demo: show saved data summary (in real app, send to backend)
+    alert("Profile saved ✓\n\n" + JSON.stringify({
+      fullName: form.fullName,
+      dob: form.dob,
+      mobile: form.mobile,
+      email: form.email,
+      city: form.city,
+      state: form.state,
+      idType: form.idType
+    }, null, 2));
+    // Optionally navigate back
+    if (onBack) onBack();
+  };
+
+  return (
+    <main className="content">
+      <section style={{ maxWidth: 820 }}>
+        <div className="card">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h3>My Profile</h3>
+            <div>
+              <button className="btn btn-ghost" onClick={() => onBack ? onBack() : null}>Back</button>
+            </div>
+          </div>
+
+          <form onSubmit={handleSave} style={{ marginTop: 12, display: "grid", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div>
+                <label className="muted">Full Name</label>
+                <input value={form.fullName} onChange={handleChange("fullName")} className="input" style={{ width: "100%", padding: 8, borderRadius: 8 }} />
+              </div>
+
+              <div>
+                <label className="muted">Gender</label>
+                <select value={form.gender} onChange={handleChange("gender")} style={{ width: "100%", padding: 8, borderRadius: 8 }}>
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div>
+                <label className="muted">Date of Birth</label>
+                <input type="date" value={form.dob} onChange={handleChange("dob")} style={{ width: "100%", padding: 8, borderRadius: 8 }} />
+              </div>
+
+              <div>
+                <label className="muted">Mobile Number</label>
+                <input value={form.mobile} onChange={handleChange("mobile")} placeholder="10-digit mobile" style={{ width: "100%", padding: 8, borderRadius: 8 }} />
+              </div>
+            </div>
+
+            <div>
+              <label className="muted">Email</label>
+              <input value={form.email} onChange={handleChange("email")} placeholder="you@example.com" style={{ width: "100%", padding: 8, borderRadius: 8 }} />
+            </div>
+
+            <div>
+              <label className="muted">Address</label>
+              <input value={form.address} onChange={handleChange("address")} placeholder="Street / Locality" style={{ width: "100%", padding: 8, borderRadius: 8 }} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+              <input value={form.city} onChange={handleChange("city")} placeholder="City" style={{ padding: 8, borderRadius: 8 }} />
+              <input value={form.state} onChange={handleChange("state")} placeholder="State" style={{ padding: 8, borderRadius: 8 }} />
+              <input value={form.pincode} onChange={handleChange("pincode")} placeholder="Pincode" style={{ padding: 8, borderRadius: 8 }} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div>
+                <label className="muted">ID Proof Type</label>
+                <select value={form.idType} onChange={handleChange("idType")} style={{ width: "100%", padding: 8, borderRadius: 8 }}>
+                  <option>Aadhaar</option>
+                  <option>PAN</option>
+                  <option>Passport</option>
+                  <option>Voter ID</option>
+                </select>
+              </div>
+              <div>
+                <label className="muted">ID Number</label>
+                <input value={form.idNumber} onChange={handleChange("idNumber")} placeholder="ID number" style={{ width: "100%", padding: 8, borderRadius: 8 }} />
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div>
+                <label className="muted">Nominee Name</label>
+                <input value={form.nomineeName} onChange={handleChange("nomineeName")} placeholder="Nominee" style={{ width: "100%", padding: 8, borderRadius: 8 }} />
+              </div>
+              <div>
+                <label className="muted">Relation</label>
+                <input value={form.nomineeRelation} onChange={handleChange("nomineeRelation")} placeholder="Relation" style={{ width: "100%", padding: 8, borderRadius: 8 }} />
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div>
+                <label className="muted">New Password (optional)</label>
+                <input type="password" value={form.password} onChange={handleChange("password")} placeholder="Leave blank to keep unchanged" style={{ width: "100%", padding: 8, borderRadius: 8 }} />
+              </div>
+              <div>
+                <label className="muted">Confirm Password</label>
+                <input type="password" value={form.confirmPassword} onChange={handleChange("confirmPassword")} placeholder="" style={{ width: "100%", padding: 8, borderRadius: 8 }} />
+              </div>
+            </div>
+
+            <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+              <button type="submit" className="btn btn-primary">Save Profile</button>
+              <button type="button" className="btn btn-ghost" onClick={() => {
+                if (confirm("Discard changes and go back?")) onBack && onBack();
+              }}>Cancel</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <aside className="sidebar-right">
+        <div className="card">
+          <h3>Profile Tips</h3>
+          <div className="muted">Use your primary mobile & email. Keep ID proof ready for verification. </div>
         </div>
       </aside>
     </main>
@@ -497,6 +673,7 @@ function DelayAnalyticsPage({ trains, kpis }) {
   );
 }
 
+
 // Reports page — summaries, logs, and export options
 function ReportsPage({ trains, recs, kpis }) {
   return (
@@ -562,7 +739,6 @@ function ReportsPage({ trains, recs, kpis }) {
 }
 
 
-
 function HeadingBar() {
   return (
     <div className="heading-bar">
@@ -573,10 +749,42 @@ function HeadingBar() {
 
 /* ----- Main App ----- */
 function App() {
-  const [trains,setTrains] = useState(initialTrains);
+  const [trains,setTrains] = useState([]);
   const [recs,setRecs] = useState([]);
-  const [kpis,setKpis] = useState(computeKPIs(initialTrains));
-  const [activePage, setActivePage] = useState("Dashboard"); // NEW
+  const [kpis,setKpis] = useState({ throughput: 0, avgDelay: 0, inSection: 0 }); // fixed
+  const [activePage, setActivePage] = useState("Dashboard");
+
+  /*
+  useEffect(() => {
+    // ---- Mock trains for local testing ----
+    const mockTrains = Array.from({length: 10}).map((_,i)=>({
+        id: (1000+i).toString(),
+        type: ["Express","Passenger","Freight"][i%3],
+        pos: Math.random()*100,
+        speed: +(0.5 + Math.random()*1.5).toFixed(2),
+        origin: "SBC",
+        dest: "BLR",
+        priority: i%3+1,
+        delay: Math.floor(Math.random()*15)
+    }));
+    setTrains(mockTrains);
+    setRecs(generateRecommendations(mockTrains));
+    setKpis(computeKPIs(mockTrains));
+}, []);
+
+*/    
+
+ useEffect(() => {
+  fetch("http://127.0.0.1:5000/api/trains")
+    .then(res => res.json())
+    .then(data => {
+        setTrains(data);
+        setRecs(generateRecommendations(data));
+        setKpis(computeKPIs(data));
+    })
+    .catch(err => console.error(err));
+}, []);
+
 
   useEffect(()=>{
     const timer = setInterval(()=>{
@@ -596,14 +804,10 @@ function App() {
 
   return (
     <div className="app">
-      {/* pass activePage and setter to Sidebar */}
       <Sidebar activePage={activePage} setActivePage={setActivePage} />
-
-      {/* Keep topbar and heading visible */}
-      <Topbar />
+       <Topbar setActivePage={setActivePage} />
       <HeadingBar />
 
-      {/* Conditional rendering of the main area */}
       {activePage === "Dashboard" && (
         <main className="content">
           <section>
@@ -627,34 +831,18 @@ function App() {
         </main>
       )}
 
-      {activePage === "Real-time Schedule" && (
-        <RealTimeSchedulePage trains={trains} />
-      )}
-
-      {activePage === "AI Scheduling" && (
-      <AISchedulingPage recs={recs} />
-       )}
-     
-     {activePage === "About Us" && (
-  <AboutUsPage />
-)}
-
-{activePage === "Delay Analytics" && (
-  <DelayAnalyticsPage trains={trains} kpis={kpis} />
-)}
-
-{activePage === "Reports" && (
-  <ReportsPage trains={trains} recs={recs} kpis={kpis} />
-)}
-
-      
+      {activePage === "Real-time Schedule" && <RealTimeSchedulePage trains={trains} />}
+      {activePage === "AI Scheduling" && <AISchedulingPage recs={recs} />}
+      {activePage === "About Us" && <AboutUsPage />}
+      {activePage === "Delay Analytics" && <DelayAnalyticsPage trains={trains} kpis={kpis} />}
+      {activePage === "Reports" && <ReportsPage trains={trains} recs={recs} kpis={kpis} />}
+      {activePage === "Profile" && <ProfilePage onBack={() => setActivePage("Dashboard")} />}
+      {activePage === "Admin Setting" && <AdminPanel showToast={(msg, type) => alert(msg)} />}
 
 
-      {/* (Later add conditions for other pages) */}
     </div>
   );
 }
-
 
 /* ----- Render App ----- */
 ReactDOM.createRoot(document.getElementById("root")).render(<App />);
